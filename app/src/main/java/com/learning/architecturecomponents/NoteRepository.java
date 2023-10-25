@@ -148,7 +148,7 @@ public class NoteRepository {
     }
 
     //declaring a method to delete all notes in background
-    public void deleteAllNoteInBackground(Note note){
+    public void deleteAllNoteInBackground(){
         //create a single-threaded ExecutorService to manage background tasks.
         //It creates an ExecutorService with a single background thread, ensuring that database operations do not block the main UI thread.
         ExecutorService executorService = Executors.newSingleThreadExecutor();
