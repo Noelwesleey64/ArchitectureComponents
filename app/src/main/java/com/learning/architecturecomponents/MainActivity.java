@@ -1,5 +1,11 @@
 package com.learning.architecturecomponents;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
@@ -7,14 +13,61 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    //request code for our intent
+    public static final int ADD_NOTE_REQUEST = 1;
+
+    //this code handles the result that is returned by the AddNoteActivity. It checks if the result is successful (RESULT_OK) and then extracts the data sent from the AddNoteActivity
+    ActivityResultLauncher<Intent> startForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+       //This is the onActivityResult method of the ActivityResultCallback. It is called when the result of the activity (in this case, the AddNoteActivity) is received.
+        @Override
+        //This line creates an ActivityResultLauncher named startForResult
+        public void onActivityResult(ActivityResult result) {
+            //his conditional statement checks if the result is not null and if the result code is RESULT_OK.
+            // This ensures that the result was successful.
+            if(result != null && result.getResultCode() == RESULT_OK ){
+                //If the result is successful, this line extracts the title from the data contained within the result.
+                // It uses the EXTRA_TITLE constant to access the data sent from the AddNoteActivity.
+               String title = result.getData().getStringExtra(AddNoteActivity.EXTRA_TITLE);
+
+                //this extracts the description from the data using the EXTRA_DESCRIPTION constant.
+               String description = result.getData().getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION);
+
+               //This line extracts the priority value from the data.
+               int priority = result.getData().getIntExtra(AddNoteActivity.EXTRA_PRIORITY, 1);
+
+               //create a note instance and pass the values we got as a result from the AddNoteActivity
+
+               Note note = new Note(title, description, priority );
+
+               //Insert the note object in the database
+               noteViewModel.insert(note);
+
+                Toast.makeText(MainActivity.this, "Note saved", Toast.LENGTH_SHORT).show();
+
+
+
+            }else {
+
+                Toast.makeText(MainActivity.this, "Note not saved", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    });
+
 
     private NoteViewModel noteViewModel;
+
+    FloatingActionButton buttonAddNote;
 
     //declaring a recyclerView
     RecyclerView note_recyclerView;
@@ -24,6 +77,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        buttonAddNote = findViewById(R.id.button_add_note);
+        buttonAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
+                //initiate the launching of the AddNoteActivity for a result by calling the launch method of the ActivityResultLauncher.
+                //The AddNoteActivity will perform its actions, and upon completion, it will send back a result to the calling activity.
+                //The result is handled in the onActivityResult method of the ActivityResultCallback
+                startForResult.launch(intent);
+
+            }
+        });
 
         //initializing our recyclerView item
         note_recyclerView = findViewById(R.id.recyclerView);
@@ -56,4 +122,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 }
