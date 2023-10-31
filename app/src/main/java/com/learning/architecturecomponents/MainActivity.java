@@ -5,11 +5,13 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,35 +30,34 @@ public class MainActivity extends AppCompatActivity {
 
     //this code handles the result that is returned by the AddNoteActivity. It checks if the result is successful (RESULT_OK) and then extracts the data sent from the AddNoteActivity
     ActivityResultLauncher<Intent> startForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-       //This is the onActivityResult method of the ActivityResultCallback. It is called when the result of the activity (in this case, the AddNoteActivity) is received.
+        //This is the onActivityResult method of the ActivityResultCallback. It is called when the result of the activity (in this case, the AddNoteActivity) is received.
         @Override
         //This line creates an ActivityResultLauncher named startForResult
         public void onActivityResult(ActivityResult result) {
             //his conditional statement checks if the result is not null and if the result code is RESULT_OK.
             // This ensures that the result was successful.
-            if(result != null && result.getResultCode() == RESULT_OK ){
+            if (result != null && result.getResultCode() == RESULT_OK) {
                 //If the result is successful, this line extracts the title from the data contained within the result.
                 // It uses the EXTRA_TITLE constant to access the data sent from the AddNoteActivity.
-               String title = result.getData().getStringExtra(AddNoteActivity.EXTRA_TITLE);
+                String title = result.getData().getStringExtra(AddNoteActivity.EXTRA_TITLE);
 
                 //this extracts the description from the data using the EXTRA_DESCRIPTION constant.
-               String description = result.getData().getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION);
+                String description = result.getData().getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION);
 
-               //This line extracts the priority value from the data.
-               int priority = result.getData().getIntExtra(AddNoteActivity.EXTRA_PRIORITY, 1);
+                //This line extracts the priority value from the data.
+                int priority = result.getData().getIntExtra(AddNoteActivity.EXTRA_PRIORITY, 1);
 
-               //create a note instance and pass the values we got as a result from the AddNoteActivity
+                //create a note instance and pass the values we got as a result from the AddNoteActivity
 
-               Note note = new Note(title, description, priority );
+                Note note = new Note(title, description, priority);
 
-               //Insert the note object in the database
-               noteViewModel.insert(note);
+                //Insert the note object in the database
+                noteViewModel.insert(note);
 
                 Toast.makeText(MainActivity.this, "Note saved", Toast.LENGTH_SHORT).show();
 
 
-
-            }else {
+            } else {
 
                 Toast.makeText(MainActivity.this, "Note not saved", Toast.LENGTH_SHORT).show();
             }
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
         note_recyclerView.setHasFixedSize(true);
 
-     //Creating a RecyclerViewAdapter object
+        //Creating a RecyclerViewAdapter object
         RecyclerViewAdapter adapter = new RecyclerViewAdapter();
 
         //set the adapter of our RecyclerView Item to the adapter object we created
@@ -121,6 +122,28 @@ public class MainActivity extends AppCompatActivity {
                 adapter.setNotes(notes);
             }
         });
-    }
 
+        //This allows the user to swipe items in the RecyclerView either to the left or right to perform a certain action, in this case, deleting a note.
+        //Create an instance of ItemTouchHelper which handles touch interactions with a recyclerView
+        //creats a SimpleCallBack with dragDirs set to 0 which disables drag-and-drop functionality
+        //ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT is used for swipeDirs,which allows swiping to both the left and right.
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            //This method is called when an item is dragged. In this implementation, it simply returns false, indicating that drag-and-drop functionality is not enabled.
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            //This method is called when an item is swiped.
+            //It deletes the note associated with the swiped item using a noteViewModel instance.
+            //The adapter.getNoteAT(viewHolder.getAdapterPosition()) method is used to get the note at the swiped item's position.
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                noteViewModel.delete(adapter.getNoteAT(viewHolder.getAdapterPosition()));
+                Toast.makeText(MainActivity.this, "Note Deleted", Toast.LENGTH_SHORT).show();
+            }
+         //This method attaches the ItemTouchHelper to a specific RecyclerView named note_recyclerView.
+        }).attachToRecyclerView(note_recyclerView);
+
+    }
 }
