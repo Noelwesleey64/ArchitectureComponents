@@ -1,25 +1,25 @@
  package com.learning.architecturecomponents;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
- public class AddNoteActivity extends AppCompatActivity {
-     // static variables used as keys for passing the title, description and priority of an item or some data to our activity using an Intent.
-     public static final String EXTRA_TITLE = "package com.learning.architecturecomponents.EXTRA_TITLE";
-     public static final String EXTRA_DESCRIPTION = "package com.learning.architecturecomponents.EXTRA_DESCRIPTION";
+ public class AddEditNoteActivity extends AppCompatActivity {
 
-      public static final String EXTRA_PRIORITY = "package com.learning.architecturecomponents.EXTRA_PRIORITY";
+     // static variables used as keys for passing the title, description and priority of an item or some data to our activity using an Intent.
+     public static final String EXTRA_ID = "com.learning.architecturecomponents.EXTRA_ID";
+     public static final String EXTRA_TITLE = "com.learning.architecturecomponents.EXTRA_TITLE";
+     public static final String EXTRA_DESCRIPTION = "com.learning.architecturecomponents.EXTRA_DESCRIPTION";
+
+      public static final String EXTRA_PRIORITY = "com.learning.architecturecomponents.EXTRA_PRIORITY";
 
 
 
@@ -47,19 +47,30 @@ import android.widget.Toast;
         numberPickerPriority.setMinValue(1);
         //set maximum value for number picker
         numberPickerPriority.setMaxValue(10);
+         Intent intent = getIntent();
+         if(intent.hasExtra(EXTRA_ID)){
+             setTitle("Edit Note");
+             editTextTitle.setText(intent.getStringExtra(EXTRA_TITLE));
+             editTextDescription.setText(intent.getStringExtra(EXTRA_DESCRIPTION));
+             numberPickerPriority.setValue(intent.getIntExtra(EXTRA_PRIORITY, 1));
 
-        //This line customizes the action bar or app bar for the current activity
-        //It sets the indicator on the left side of the action bar to an icon with the resource ID ic_close.
-        // This icon is usually used to indicate a "close" or "cancel" action.
-        //getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
-        //This sets the title of the current activity to "Add Note."
-        setTitle("Add Note");
+         } else{
+             //This line customizes the action bar or app bar for the current activity
+             //It sets the indicator on the left side of the action bar to an icon with the resource ID ic_close.
+             // This icon is usually used to indicate a "close" or "cancel" action.
+             //getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
+             //This sets the title of the current activity to "Add Note."
+             setTitle("Add Note");
+         }
+
+
+
 
         saveNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 saveNote();
-                Toast.makeText(AddNoteActivity.this, "Notes Added to Database", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddEditNoteActivity.this, "Notes Added to Database", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -92,13 +103,22 @@ import android.widget.Toast;
             // components that receive this Intent can retrieve the priority using the EXTRA_PRIORITY key.
             data.putExtra(EXTRA_PRIORITY, priority);
 
+            //check if the id of the item to be updated passed from the main activity intent is invalid
+
+            int id = getIntent().getIntExtra(EXTRA_ID, -1);
+                if (id != -1){
+                    data.putExtra(EXTRA_ID, id);
+                }
             //indicates that that the above operations were successful
             setResult(RESULT_OK, data);
             //After setting the result and attaching the data to the Intent, the current activity is closed
             finish();
+        }
+
+
 
         }
-    }
+
 
     //This method is called by the Android framework when it's time to create the options menu for the activity.
      @Override

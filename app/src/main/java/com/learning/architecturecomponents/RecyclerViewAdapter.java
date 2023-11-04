@@ -14,6 +14,10 @@ import java.util.List;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private List<Note> notes = new ArrayList<>();
+
+    //This line declares a private member variable named listener of type OnitemClickListener.
+    // This variable is used to store an instance of an interface that defines a callback method to handle item click events.
+    private OnitemClickListener listener;
     @NonNull
     @Override
     public RecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -67,6 +71,35 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             title = itemView.findViewById(R.id.Title);
             priority = itemView.findViewById(R.id.Priority);
             description = itemView.findViewById(R.id.Description);
+
+          //This code sets an OnClickListener on the itemView. When a user clicks on the item,
+            //the onClick method within this anonymous class is called.
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int position = getAdapterPosition();
+                    if(listener != null && position != RecyclerView.NO_POSITION) {
+                        //defines a single method, onItemClick, which takes a Note as a parameter.
+                        listener.onItemClick(notes.get(position));
+                    }
+                }
+            });
+
+
         }
+    }
+
+    //This method allows an external class, such as an activity or fragment,
+    // to set an OnitemClickListener on the ViewHolder.
+    public interface OnitemClickListener{
+        void onItemClick(Note note);
+    }
+
+ //his method allows an external class, such as an activity or fragment, to set an OnitemClickListener on the ViewHolder.
+    public void setOnitemClickListener(OnitemClickListener listener){
+
+        //This line assigns the provided listener to the listener member variable,
+        // which allows the ViewHolder to call the onItemClick method of the listener when a list item is clicked.
+               this.listener = listener;
     }
 }
